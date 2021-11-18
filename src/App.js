@@ -1,33 +1,101 @@
 /* eslint-disable no-unused-vars */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { withAuthenticator } from "aws-amplify-react";
+import {API,graphqlOperation} from 'aws-amplify';
+import { createNotes,deleteNotes, updateNotes} from './graphql/mutations';
+import {listNotes} from './graphql/queries';
 
 function App() {
   const [notes,setNotes] = useState([]);
   const [note,setNote] = useState("");
+  const [id,setID]= useState("");
+
+
+  const hasExitingNote= () =>{
+    if(id){
+      const isNote = notes.findIndex(note =>note.id === id)>-1
+      return isNote
+    }
+    return false
+ }
+
+  const handleAddNote =async(e)=>{
+    e.preventDefault();
+    const input ={notes:note}
+     if(hasExitingNote){
+        handleUpdateNote()
+     } 
+     else{
+      const result = await API.graphql(graphqlOperation(createNotes,{input}));
+      const newNote = result.data.createNotes;
+      const updatedNote =  [newNote,...notes];
+      setNotes(updatedNote);
+      setNote("");
+     }  
+   
+ }
+
+ const handleUpdateNote = async () =>{
+   const input ={id,notes:note};
+   const result = await API.graphql(graphqlOperation(updateNotes,{input}));
+   const updatedNote = result.data.updateNotes;
+   const index = notes.findIndex(note=>note.id === updateNotes.id)
+   const updatedNotes =[
+     ...notes.slice(0,index),
+     updatedNote,
+     ...notes.slice(0,index+1)
+   ]
+   setNotes(updatedNotes)
+   setNote("")
+   setID("")
+ }
+ 
+
+  const handleDelete = async (noteId) =>{
+       const input ={id:noteId}
+       const result = await API.graphql(graphqlOperation(deleteNotes,{input}))
+       const deleteNoteId = result.data.deleteNotes.id;
+       const updatedNotes = notes.filter(note => note.id !== deleteNoteId)
+       setNotes(updatedNotes)
+       
+  }
+
+   const handleSetNote = ({notes,id})=>{
+      setNote(notes)
+      setID(id)
+   }
+
+
+      useEffect(()=>{
+        (async () => {
+          const result = await API.graphql(graphqlOperation(listNotes))
+          setNotes(result.data.listNotes.items) 
+        })()
+      },[])
 
   return (
     <div className="flex flex-column items-center justify-center pa3 bg-washed-red">
          <h1 className="code f2-1">Amplify NoteTracker</h1> 
          {/* {Note  From} */}
-         <from className="mb3">
+         <form  onSubmit={handleAddNote}  className="mb3">
              <input
              type="text"
              className="pa2 f4"
+             value={note}
              onChange={(e)=>setNote(e.target.value)}
-             placeholder="write Your Note"
+             placeholder="Write Your Note"
              />
-             <button className="pa2 f4">Add Note</button>
+             <button type="submit" className="pa2 f4">{id ? 'UpdateNote' : 'Add Note'}</button>
              
-         </from>
+         </form>
          {/* {notes List} */}
           <div>
             {notes.map(item =>(
               <div key={item.id} className="flex items-center">
-                  <li className="pa1 f3">
-                     {item.note}
+                  <li className="pa1 f3" onClick={()=>handleSetNote(item)}>
+                     {item.notes}
                   </li>
-                  <button className="bg-transparent bn f4">
+                  <button className="bg-transparent bn f4" onClick={()=>handleDelete(item.id)}>
                     <span>&times;</span>
                   </button>
                </div> 
