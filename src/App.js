@@ -4,12 +4,29 @@ import { withAuthenticator } from "aws-amplify-react";
 import {API,graphqlOperation} from 'aws-amplify';
 import { createNotes,deleteNotes, updateNotes} from './graphql/mutations';
 import {listNotes} from './graphql/queries';
+import {onCreateNotes } from './graphql/subscriptions';
 
 function App() {
   const [notes,setNotes] = useState([]);
   const [note,setNote] = useState("");
   const [id,setID]= useState("");
 
+
+  useEffect(()=>{
+    (async () => {
+      const result = await API.graphql(graphqlOperation(listNotes))
+      setNotes(result.data.listNotes.items) 
+    })()
+
+    API.graphql(graphqlOperation(onCreateNotes)).subscribe({
+      next:noteData =>{
+        const newNote = noteData.value.data.onCreateNotes;
+        const previousNotes = notes.filter(note => note.id !== newNote.id);
+        const updatedNotes =  [...previousNotes,newNote];
+        setNotes(updatedNotes);
+      }
+    })
+  },[])
 
   const hasExitingNote= () =>{
     if(id){
@@ -26,7 +43,7 @@ function App() {
         handleUpdateNote()
      } 
      else{
-      const result = await API.graphql(graphqlOperation(createNotes,{input}));
+     const result = await API.graphql(graphqlOperation(createNotes,{input}));
       const newNote = result.data.createNotes;
       const updatedNote =  [newNote,...notes];
       setNotes(updatedNote);
@@ -39,7 +56,7 @@ function App() {
    const input ={id,notes:note};
    const result = await API.graphql(graphqlOperation(updateNotes,{input}));
    const updatedNote = result.data.updateNotes;
-   const index = notes.findIndex(note=>note.id === updateNotes.id)
+   const index = notes.findIndex(note=>note.id === updatedNote.id)
    const updatedNotes =[
      ...notes.slice(0,index),
      updatedNote,
@@ -66,12 +83,7 @@ function App() {
    }
 
 
-      useEffect(()=>{
-        (async () => {
-          const result = await API.graphql(graphqlOperation(listNotes))
-          setNotes(result.data.listNotes.items) 
-        })()
-      },[])
+     
 
   return (
     <div className="flex flex-column items-center justify-center pa3 bg-washed-red">
