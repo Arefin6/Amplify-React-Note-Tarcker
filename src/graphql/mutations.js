@@ -11,6 +11,7 @@ export const createNotes = /* GraphQL */ `
       notes
       createdAt
       updatedAt
+      owner
     }
   }
 `;
@@ -24,6 +25,7 @@ export const updateNotes = /* GraphQL */ `
       notes
       createdAt
       updatedAt
+      owner
     }
   }
 `;
@@ -37,6 +39,7 @@ export const deleteNotes = /* GraphQL */ `
       notes
       createdAt
       updatedAt
+      owner
     }
   }
 `;

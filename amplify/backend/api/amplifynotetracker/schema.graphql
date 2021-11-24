@@ -1,4 +1,4 @@
-type Notes @model {
+type Notes @model @auth(rules:[{allow:owner}]){
   id: ID!
   notes: String!
 }
