@@ -2,8 +2,8 @@
 // this is an auto generated file. This will be overwritten
 
 export const onCreateNotes = /* GraphQL */ `
-  subscription OnCreateNotes($owner: String!) {
-    onCreateNotes(owner: $owner) {
+  subscription OnCreateNotes {
+    onCreateNotes {
       id
       notes
       createdAt
@@ -13,8 +13,8 @@ export const onCreateNotes = /* GraphQL */ `
   }
 `;
 export const onUpdateNotes = /* GraphQL */ `
-  subscription OnUpdateNotes($owner: String!) {
-    onUpdateNotes(owner: $owner) {
+  subscription OnUpdateNotes {
+    onUpdateNotes {
       id
       notes
       createdAt
@@ -24,8 +24,8 @@ export const onUpdateNotes = /* GraphQL */ `
   }
 `;
 export const onDeleteNotes = /* GraphQL */ `
-  subscription OnDeleteNotes($owner: String!) {
-    onDeleteNotes(owner: $owner) {
+  subscription OnDeleteNotes {
+    onDeleteNotes {
       id
       notes
       createdAt

@@ -4,6 +4,7 @@ import React, { Component } from 'react';
 import { createNotes, deleteNotes, updateNotes } from './graphql/mutations';
 import {listNotes} from './graphql/queries';
 import { onCreateNotes, onDeleteNotes, onUpdateNotes } from './graphql/subscriptions';
+import {Auth} from 'aws-amplify';
 
 class App extends Component {
   state={
@@ -12,14 +13,16 @@ class App extends Component {
     id:""
   }
 
-   componentDidMount(){
-    this.getNotes()
-   this.createNoteListener = API.graphql(graphqlOperation(onCreateNotes)).subscribe({
+   async componentDidMount(){
+     this.getNotes();
+
+   this.createNoteListener = API.graphql(graphqlOperation(onCreateNotes,
+    )).subscribe({
       next:noteData =>{
         const newNote = noteData.value.data.onCreateNotes;
         const prevNote  = this.state.notes.filter(note => note.id !== newNote.id)
-        const updatedNote = [...prevNote,newNote];
-        this.setState({notes:updatedNote})
+        const updatedNotes = [...prevNote,newNote];
+        this.setState({notes:updatedNotes})
       }
     })
     this.deleteNoteListener = API.graphql(graphqlOperation(onDeleteNotes)).subscribe({
@@ -45,12 +48,12 @@ class App extends Component {
         
   }
 
-   getNotes= async () =>{
+    getNotes= async () =>{
     const result = await API.graphql(graphqlOperation(listNotes))
-    this.setState({notes:result.data.listNotes.items}) 
-  }
+    this.setState({notes:result.data.listNotes.items});
+   }
 
-   hasExitingNote= () =>{
+   hasExitingNote = () =>{
      const {id,notes} = this.state;
     if(id){
       const isNote = notes.findIndex(note =>note.id === id) > -1
@@ -60,7 +63,7 @@ class App extends Component {
  }
 
  componentWillUnmount(){
-   this.createNoteListener.unsubscribe()
+  //  this.createNoteListener.unsubscribe()
    this.updateNoteListener.unsubscribe()
    this.deleteNoteListener.unsubscribe()
  }
@@ -95,9 +98,9 @@ class App extends Component {
       this.handleUpdateNote()
       }
       else{ 
-        await API.graphql(graphqlOperation(createNotes,{input}));
-        // const newNote = result.data.createNotes;
-        // const updatedNote =  [newNote,...this.state.notes];
+         await API.graphql(graphqlOperation(createNotes,{input}));
+        //  const newNote = result.data.createNotes;
+        //  const updatedNote =  [newNote,...this.state.notes];
           this.setState({note:""})
       }
   }
